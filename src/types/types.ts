@@ -11,3 +11,11 @@ export type FormInputProps = {
 export type GoogleBtnProps = {
   children: React.ReactNode;
 };
+
+export type TaskType = {
+  id: number;
+  title: string;
+  description: string;
+  priority: "low" | "medium" | "high";
+  tag: string;
+};
