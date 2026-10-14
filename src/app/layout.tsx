@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${dmSans.variable} ${neuton.variable}`}>
-      <body className="min-h-svh antialiased">{children}</body>
+      <body className="min-h-svh p-5 antialiased">{children}</body>
     </html>
   );
 }
