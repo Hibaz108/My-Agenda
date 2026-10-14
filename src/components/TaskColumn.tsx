@@ -25,20 +25,6 @@ const TaskColumn = ({ label }: TaskColumnProps) => {
           priority="high"
           tag="word"
         />
-        <Task
-          id={2}
-          title="Task 2"
-          description="no description"
-          priority="medium"
-          tag="other"
-        />
-        <Task
-          id={3}
-          title="Finish my homework"
-          description="nothing"
-          priority="low"
-          tag="school"
-        />
       </div>
     </div>
   );

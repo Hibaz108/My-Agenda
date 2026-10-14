@@ -19,3 +19,7 @@ export type TaskType = {
   priority: "low" | "medium" | "high";
   tag: string;
 };
+
+export type TaskModalProps = {
+  onClose: () => void;
+};

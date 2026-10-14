@@ -15,8 +15,10 @@ const Task = ({ id, title, description, priority, tag }: TaskType) => {
         : "text-red-400";
 
   return (
-    <div className="min-h-28 group bg-background p-4 rounded-3xl border-2 border-transparent
-    hover:border-primary duration-500 transition-colors">
+    <div
+      className="min-h-28 group bg-background p-4 rounded-3xl border-2 border-transparent
+    hover:border-primary duration-500 transition-colors"
+    >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
           <Checkbox
@@ -29,11 +31,19 @@ const Task = ({ id, title, description, priority, tag }: TaskType) => {
 
         {/* delete & edit btns container */}
         <div className="flex lg:hidden lg:group-hover:flex gap-2">
-          <button type="button" className="text-muted-foreground" aria-label="edit task">
+          <button
+            type="button"
+            className="text-muted-foreground"
+            aria-label="Edit task"
+          >
             <FaPen aria-hidden="true" className="size-3" />
           </button>
 
-          <button type="button" className="text-red-500" aria-label="delete task">
+          <button
+            type="button"
+            className="text-red-500"
+            aria-label="Delete task"
+          >
             <MdDelete aria-hidden="true" className="size-4" />
           </button>
         </div>
