@@ -18,11 +18,15 @@ export type GoogleBtnProps = {
 };
 
 export type TaskType = {
-  id: number;
+  id: string;
   title: string;
   description: string;
+  status: "todo" | "in-progress" | "completed";
   priority: "low" | "medium" | "high";
-  tag: string;
+  color: string;
+  tags: string[];
+  created_at: string;
+  user_id: string;
 };
 
 export type TaskModalProps = {

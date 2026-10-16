@@ -13,8 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 // other
 import type { TaskModalProps } from "@/types/types";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { taskSchema, type TaskFormValues } from "@/schemas/taskSchema";
+import FieldError from "@/components/FieldError";
+import { useAddTask } from "@/hooks/useAddTask";
 
 const colors = [
   "#C9F2EB",
@@ -26,7 +32,7 @@ const colors = [
   "#E4F1ED",
   "#E4DBF5",
   "#F5EBF2",
-];
+] as const;
 
 const statuses = [
   { label: "To Do", value: "todo" },
@@ -42,10 +48,43 @@ const priorities = [
 
 const TaskModal = ({ onClose }: TaskModalProps) => {
   const [selectedColor, setSelectedColor] = useState("#C9F2EB");
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<TaskFormValues>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      status: "todo",
+      priority: "medium",
+      color: "#C9F2EB",
+      tags: "",
+    },
+  });
+  const { mutate: addTask, isPending } = useAddTask();
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40">
-      <form className="w-full max-w-sm bg-background p-6 mx-4 space-y-4 rounded-2xl shadow-sm">
+      <form
+        className="w-full max-w-sm bg-background p-6 mx-4 space-y-4 rounded-2xl shadow-sm"
+        onSubmit={handleSubmit((data) => {
+          addTask(data, {
+            onSuccess: () => {
+              onClose();
+              toast.success("Task created", { position: "top-center" });
+            },
+            onError: () => {
+              toast.error("Failed to create task. Please try again.", {
+                position: "top-center",
+              });
+            },
+          });
+        })}
+        noValidate
+      >
         <div>
           <div className="flex justify-between">
             <h3 className="font-heading text-2xl font-bold">New task</h3>
@@ -75,7 +114,10 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
             className="bg-card px-2 py-1 text-sm rounded-lg outline-none focus-visible:ring-2 
             focus-visible:ring-primary"
             placeholder="Clean my room"
+            maxLength={100}
+            {...register("title")}
           />
+          <FieldError message={errors.title?.message} />
         </div>
         {/* === title === */}
 
@@ -93,7 +135,10 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
             className="min-h-16 bg-card px-2 py-1 text-sm rounded-lg outline-none 
             focus-visible:ring-2 focus-visible:ring-primary"
             placeholder="Optional details..."
+            maxLength={500}
+            {...register("description")}
           />
+          <FieldError message={errors.description?.message} />
         </div>
         {/* === description === */}
 
@@ -101,7 +146,15 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
         <div className="flex gap-2">
           <Field>
             <FieldLabel htmlFor="statuses">Status</FieldLabel>
-            <Select items={statuses} defaultValue="todo">
+            <Select
+              items={statuses}
+              defaultValue="todo"
+              onValueChange={(value) =>
+                setValue("status", value as TaskFormValues["status"], {
+                  shouldValidate: true,
+                })
+              }
+            >
               <SelectTrigger id="statuses">
                 <SelectValue />
               </SelectTrigger>
@@ -121,7 +174,15 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
           <Field>
             <FieldLabel htmlFor="priorities">Priority</FieldLabel>
 
-            <Select items={priorities} defaultValue="medium">
+            <Select
+              items={priorities}
+              defaultValue="medium"
+              onValueChange={(value) =>
+                setValue("priority", value as TaskFormValues["priority"], {
+                  shouldValidate: true,
+                })
+              }
+            >
               <SelectTrigger id="priorities">
                 <SelectValue />
               </SelectTrigger>
@@ -149,7 +210,10 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
               <button
                 key={color}
                 type="button"
-                onClick={() => setSelectedColor(color)}
+                onClick={() => {
+                  setSelectedColor(color);
+                  setValue("color", color);
+                }}
                 aria-label={`Choose color ${color}`}
                 aria-pressed={selectedColor === color}
                 style={{ backgroundColor: color }}
@@ -173,7 +237,9 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
             type="text"
             className="bg-card px-2 py-1 text-sm rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary"
             placeholder="work, school, shopping"
+            {...register("tags")}
           />
+          <FieldError message={errors.tags?.message} />
         </div>
         {/* === tags === */}
 
@@ -188,11 +254,12 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
           </button>
 
           <button
-            type="button"
+            type="submit"
             className="bg-primary p-2 text-sm text-primary-foreground font-semibold rounded-xl hover:bg-primary-hover
-             transition-colors"
+             transition-colors disabled:opacity-50"
+            disabled={isPending}
           >
-            Create task
+            {isPending ? "Creating..." : "Create task"}
           </button>
         </div>
         {/* === form actions === */}

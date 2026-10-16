@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Providers from "./Providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const dmSans = localFont({
   src: "./fonts/DMSans-Regular.ttf",
@@ -23,7 +25,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${dmSans.variable} ${neuton.variable}`}>
-      <body className="min-h-svh p-5 antialiased">{children}</body>
+      <body className="min-h-svh p-5 antialiased">
+        <Providers>{children}</Providers>
+        <Toaster />
+      </body>
     </html>
   );
 }

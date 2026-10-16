@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 // icons
 import { PiSignOutBold } from "react-icons/pi";
 import { IoMdSearch } from "react-icons/io";
+import { GoTasklist } from "react-icons/go";
 // shadcn
 import {
   Select,
@@ -14,12 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 // components
 import TaskColumn from "@/components/TaskColumn";
 import TaskModal from "@/components/TaskModal";
+import TaskSkeleton from "@/components/TaskSkeleton";
 // other
 import type { DashboardClientProps } from "@/types/types";
 import { createClient } from "@/lib/supabase/client";
+import { useTasks } from "@/hooks/useTasks";
 
 const statuses = [
   { label: "All statuses", value: "all" },
@@ -47,15 +52,19 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const supabase = createClient();
   const router = useRouter();
+  const now = new Date();
+  const date = now.toDateString().split(" ").slice(0, 3).join(" ");
   const fullName = user.user_metadata?.full_name?.trim() || "User";
   const firstName = fullName.split(/\s+/)[0];
   const initial = firstName[0].toUpperCase();
+
+  const { data: tasks = [], isPending, error, refetch } = useTasks();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.log(error.message);
+      toast.error("Failed to sign out. Please try again.");
       return;
     }
     router.replace("/login");
@@ -67,7 +76,7 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
         <TaskModal onClose={() => setIsTaskModalOpen(false)} />
       )}
 
-      <div className="min-h-[90svh] w-full max-w-5xl mx-auto bg-background p-5 rounded-2xl shadow-md">
+      <div className="min-h-[90svh] w-full max-w-5xl flex flex-col mx-auto bg-background p-5 rounded-2xl shadow-md">
         <div className="flex justify-between">
           <h1 className="text-3xl text-primary font-heading font-bold">
             My Agenda
@@ -120,7 +129,7 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
 
         <div className="mt-2">
           <p className="uppercase text-sm text-primary">
-            Your workspace / TUE 06 OCT
+            Your workspace / {date}
           </p>
 
           <div className="flex justify-between items-center mt-6">
@@ -139,20 +148,23 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
           </div>
 
           <p className="mt-2 text-sm">
-            5 tasks •<span className="text-green-500"> 0 done</span>
+            {tasks.length} tasks •{" "}
+            <span className="text-green-500">
+              {tasks.filter((task) => task.status === "completed").length} done
+            </span>
           </p>
         </div>
 
-        <div className="flex flex-col justify-center lg:flex-row lg:items-center gap-2 bg-white p-2 mt-3 rounded-lg ">
+        <div className="flex flex-col justify-center lg:flex-row lg:items-center gap-2 bg-card p-2 mt-3 rounded-lg ">
           {/* search */}
           <div className="relative flex-1">
             <input
               type="text"
-              className="w-full py-1.5 pl-8 rounded-lg bg-white border border-border outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="w-full py-1.5 pl-8 rounded-lg bg-card border border-border outline-none focus-visible:ring-2 focus-visible:ring-primary"
               placeholder="Search tasks, tags..."
             />
 
-            <span className="absolute left-1.5 top-2 text-gray-500">
+            <span className="absolute left-1.5 top-2 text-muted-foreground">
               <IoMdSearch className="size-6" />
             </span>
           </div>
@@ -215,11 +227,76 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {["To Do", "In Progress", "Completed"].map((column) => (
-            <TaskColumn key={column} label={column} />
-          ))}
-        </div>
+        {isPending ? (
+          <div
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            aria-label="Loading tasks"
+          >
+            {["todo", "in-progress", "completed"].map((status) => (
+              <div
+                key={status}
+                className="mt-4 space-y-3 rounded-2xl bg-primary/30 p-3"
+              >
+                <Skeleton className="h-9 rounded-2xl" />
+
+                <div className="space-y-2">
+                  <TaskSkeleton />
+                  <TaskSkeleton />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div
+            role="alert"
+            className="flex flex-col items-center gap-3 py-8 text-center"
+          >
+            <p className="text-lg text-muted-foreground font-semibold">
+              We couldn&apos;t load your tasks.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="bg-primary px-4 py-2 text-sm text-primary-foreground font-semibold rounded-xl hover:bg-primary-hover transition-colors"
+            >
+              Try again
+            </button>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="flex-1 w-full flex flex-col justify-center items-center gap-2 bg-primary/10 p-2 mt-3 text-center rounded-2xl ">
+            <span>
+              <GoTasklist className="size-8" strokeWidth={1} />
+            </span>
+
+            <h4 className=" text-lg md:text-xl font-semibold">No tasks yet</h4>
+            <p className="text-muted-foreground text-sm">
+              Create your first task and start shaping your day.
+            </p>
+
+            <button
+              type="button"
+              className="bg-primary py-2 px-4 text-sm text-primary-foreground rounded-xl hover:bg-primary-hover transition-colors"
+              onClick={() => setIsTaskModalOpen(true)}
+            >
+              + Add task
+            </button>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { label: "To Do", status: "todo" },
+              { label: "In Progress", status: "in-progress" },
+              { label: "Completed", status: "completed" },
+            ].map((column) => (
+              <TaskColumn
+                key={column.status}
+                label={column.label}
+                tasks={tasks.filter((task) => task.status === column.status)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );
