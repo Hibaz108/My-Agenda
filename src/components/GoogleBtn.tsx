@@ -2,6 +2,7 @@
 import type { GoogleBtnProps } from "@/types/types";
 import { FcGoogle } from "react-icons/fc";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 const GoogleBtn = ({ children }: GoogleBtnProps) => {
   const supabase = createClient();
@@ -15,8 +16,9 @@ const GoogleBtn = ({ children }: GoogleBtnProps) => {
     });
 
     if (error) {
-      // TODO: show error using sonner toast.
-      console.log(error.message);
+      toast.error("Google sign-in failed. Please try again.", {
+        position: "top-center",
+      });
     }
   };
 
