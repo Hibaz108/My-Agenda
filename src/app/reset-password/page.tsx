@@ -1,6 +1,7 @@
 "use client";
-// react
-import { useState } from "react";
+// react and next
+import { useState, useEffect } from "react";
+import Link from "next/link";
 // components
 import SuccessMessage from "@/components/SuccessMessage";
 import FieldError from "@/components/FieldError";
@@ -18,6 +19,8 @@ import { createClient } from "@/lib/supabase/client";
 const ResetPasswordForm = () => {
   const supabase = createClient();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const {
@@ -50,6 +53,56 @@ const ResetPasswordForm = () => {
       setErrorMessage("Something went wrong. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+
+        setHasSession(!error && data.user !== null);
+      } catch {
+        setHasSession(false);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+    checkSession();
+  }, [supabase]);
+
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-svh flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">
+          Verifying reset session...
+        </p>
+      </div>
+    );
+  }
+
+  if (!hasSession) {
+    return (
+      <div className="min-h-svh flex items-center justify-center">
+        <div className="w-full max-w-md bg-background p-4 rounded-2xl shadow-sm">
+          <h3 className="text-lg text-primary font-bold">
+            Reset link unavailable
+          </h3>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your reset link may have expired or is invalid. Please request a new
+            one.
+          </p>
+
+          <Link
+            href="/forgot-password"
+            className="block bg-primary p-2 mt-4 text-sm text-center text-primary-foreground font-semibold rounded-lg
+            hover:bg-primary-hover transition-colors"
+          >
+            Request a new reset link
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (
