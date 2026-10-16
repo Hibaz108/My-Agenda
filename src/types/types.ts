@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import type { IconType } from "react-icons";
 import type { User } from "@supabase/supabase-js";
+import type { TaskFormValues } from "@/schemas/taskSchema";
 
 export type FormInputProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -23,7 +24,7 @@ export type TaskType = {
   description: string;
   status: "todo" | "in-progress" | "completed";
   priority: "low" | "medium" | "high";
-  color: string;
+  color: TaskFormValues["color"];
   tags: string[];
   created_at: string;
   user_id: string;
@@ -31,6 +32,7 @@ export type TaskType = {
 
 export type TaskModalProps = {
   onClose: () => void;
+  task?: TaskType;
 };
 
 export type SuccessMessageProps = {

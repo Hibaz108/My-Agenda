@@ -264,12 +264,12 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
             </button>
           </div>
         ) : tasks.length === 0 ? (
-          <div className="flex-1 w-full flex flex-col justify-center items-center gap-2 bg-primary/10 p-2 mt-3 text-center rounded-2xl ">
-            <span>
-              <GoTasklist className="size-8" strokeWidth={1} />
+          <div className="flex-1 w-full flex flex-col justify-center items-center gap-2 bg-card p-2 mt-3 text-center rounded-2xl ">
+            <span >
+              <GoTasklist className="size-8 text-primary" strokeWidth={1} />
             </span>
 
-            <h4 className=" text-lg md:text-xl font-semibold">No tasks yet</h4>
+            <h4 className="text-lg text-primary md:text-xl font-semibold">No tasks yet</h4>
             <p className="text-muted-foreground text-sm">
               Create your first task and start shaping your day.
             </p>

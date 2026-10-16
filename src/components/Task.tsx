@@ -8,10 +8,14 @@ import { toast } from "sonner";
 import type { TaskType } from "@/types/types";
 import { useState } from "react";
 import { useDeleteTask } from "@/hooks/useDeleteTask";
+import TaskModal from "./TaskModal";
+import { useCompleteTask } from "@/hooks/useCompleteTask";
 
 const Task = ({ task }: { task: TaskType }) => {
+  const [showTaskModal, setShowTaskModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const { mutate: deleteTask, isPending } = useDeleteTask();
+  const { mutate: completeTask, isPending: isCompleting } = useCompleteTask();
 
   const priorityTextColor =
     task.priority === "low"
@@ -36,8 +40,16 @@ const Task = ({ task }: { task: TaskType }) => {
     });
   };
 
+  const handleComplete = (checked: boolean) => {
+    completeTask({ id: task.id, completed: checked });
+  };
+
   return (
     <>
+      {showTaskModal && (
+        <TaskModal onClose={() => setShowTaskModal(false)} task={task} />
+      )}
+
       {showDeleteConfirmation && (
         <div className="inset-0 fixed flex justify-center items-center bg-black/40 z-50">
           <div className=" w-full max-w-md mx-4 bg-background p-5 rounded-2xl shadow-sm">
@@ -77,9 +89,19 @@ const Task = ({ task }: { task: TaskType }) => {
             <Checkbox
               id={`task-${task.id}`}
               aria-label={`Mark ${task.title} as completed`}
+              checked={task.status === "completed"}
+              onCheckedChange={(checked) => {
+                if (isCompleting || typeof checked !== "boolean") return;
+                handleComplete(checked);
+              }}
+              disabled={isCompleting}
             />
 
-            <h3 className="text-xl font-heading font-semibold">{task.title}</h3>
+            <h3
+              className={`text-xl font-heading font-semibold ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}
+            >
+              {task.title}
+            </h3>
           </div>
 
           {/* delete & edit btns container */}
@@ -88,6 +110,7 @@ const Task = ({ task }: { task: TaskType }) => {
               type="button"
               className="text-muted-foreground"
               aria-label={`Edit ${task.title}`}
+              onClick={() => setShowTaskModal(true)}
             >
               <FaPen aria-hidden="true" className="size-3" />
             </button>

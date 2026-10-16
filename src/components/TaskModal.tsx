@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { taskSchema, type TaskFormValues } from "@/schemas/taskSchema";
 import FieldError from "@/components/FieldError";
 import { useAddTask } from "@/hooks/useAddTask";
+import { useUpdateTask } from "@/hooks/useUpdateTask";
 
 const colors = [
   "#C9F2EB",
@@ -46,8 +47,10 @@ const priorities = [
   { label: "High", value: "high" },
 ];
 
-const TaskModal = ({ onClose }: TaskModalProps) => {
-  const [selectedColor, setSelectedColor] = useState("#C9F2EB");
+const TaskModal = ({ onClose, task }: TaskModalProps) => {
+  const [selectedColor, setSelectedColor] = useState<TaskFormValues["color"]>(
+    (task?.color ?? "#C9F2EB") as TaskFormValues["color"],
+  );
   const {
     register,
     handleSubmit,
@@ -56,38 +59,83 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
   } = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      status: "todo",
-      priority: "medium",
-      color: "#C9F2EB",
-      tags: "",
+      title: task?.title ?? "",
+      description: task?.description ?? "",
+      status: task?.status ?? "todo",
+      priority: task?.priority ?? "medium",
+      color: (task?.color ?? "#C9F2EB") as TaskFormValues["color"],
+      tags: task?.tags.join(", ") ?? "",
     },
   });
-  const { mutate: addTask, isPending } = useAddTask();
+  const { mutate: addTask, isPending: isAdding } = useAddTask();
+  const { mutate: updateTask, isPending: isUpdating } = useUpdateTask();
+
+  const isPending = isAdding || isUpdating;
+
+  const onSubmit = handleSubmit((data) => {
+    if (task) {
+      const tags = data.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+
+      updateTask(
+        {
+          id: task.id,
+          updates: {
+            title: data.title,
+            description: data.description,
+            status: data.status,
+            priority: data.priority,
+            color: data.color,
+            tags,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success("Task updated successfully.", {
+              position: "top-center",
+            });
+            onClose();
+          },
+          onError: () => {
+            toast.error("Failed to update task. Please try again.", {
+              position: "top-center",
+            });
+          },
+        },
+      );
+
+      return;
+    }
+
+    addTask(data, {
+      onSuccess: () => {
+        toast.success("Task created successfully.", {
+          position: "top-center",
+        });
+        onClose();
+      },
+      onError: () => {
+        toast.error("Failed to create task. Please try again.", {
+          position: "top-center",
+        });
+      },
+    });
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40">
       <form
         className="w-full max-w-sm bg-background p-6 mx-4 space-y-4 rounded-2xl shadow-sm"
-        onSubmit={handleSubmit((data) => {
-          addTask(data, {
-            onSuccess: () => {
-              onClose();
-              toast.success("Task created", { position: "top-center" });
-            },
-            onError: () => {
-              toast.error("Failed to create task. Please try again.", {
-                position: "top-center",
-              });
-            },
-          });
-        })}
+        onSubmit={onSubmit}
         noValidate
       >
         <div>
           <div className="flex justify-between">
-            <h3 className="font-heading text-2xl font-bold">New task</h3>
+            <h3 className="font-heading text-2xl font-semibold">
+              {task ? "Edit task" : "New task"}
+            </h3>
 
             <button type="button" onClick={onClose} aria-label="Close modal">
               <IoClose aria-hidden="true" />
@@ -95,7 +143,9 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            Add a task to your workspace.
+            {task
+              ? "Update your task details."
+              : "Add a task to your workspace."}
           </p>
         </div>
 
@@ -148,7 +198,7 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
             <FieldLabel htmlFor="statuses">Status</FieldLabel>
             <Select
               items={statuses}
-              defaultValue="todo"
+              defaultValue={task?.status ?? "todo"}
               onValueChange={(value) =>
                 setValue("status", value as TaskFormValues["status"], {
                   shouldValidate: true,
@@ -176,7 +226,7 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
 
             <Select
               items={priorities}
-              defaultValue="medium"
+              defaultValue={task?.priority ?? "medium"}
               onValueChange={(value) =>
                 setValue("priority", value as TaskFormValues["priority"], {
                   shouldValidate: true,
@@ -259,7 +309,13 @@ const TaskModal = ({ onClose }: TaskModalProps) => {
              transition-colors disabled:opacity-50"
             disabled={isPending}
           >
-            {isPending ? "Creating..." : "Create task"}
+            {isPending
+              ? task
+                ? "Saving..."
+                : "Creating..."
+              : task
+                ? "Save changes"
+                : "Create task"}
           </button>
         </div>
         {/* === form actions === */}
