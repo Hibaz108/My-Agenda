@@ -1,6 +1,11 @@
+import type { InputHTMLAttributes, ReactNode } from "react";
 import type { IconType } from "react-icons";
+import type { User } from "@supabase/supabase-js";
 
-export type FormInputProps = {
+export type FormInputProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "id" | "type"
+> & {
   id: string;
   label: string;
   type: "text" | "password" | "email";
@@ -9,7 +14,7 @@ export type FormInputProps = {
 };
 
 export type GoogleBtnProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export type TaskType = {
@@ -22,4 +27,17 @@ export type TaskType = {
 
 export type TaskModalProps = {
   onClose: () => void;
+};
+
+export type SuccessMessageProps = {
+  title: string;
+  message: string;
+};
+
+export type FieldErrorProps = {
+  message?: string;
+};
+
+export type DashboardClientProps = {
+  user: User;
 };
