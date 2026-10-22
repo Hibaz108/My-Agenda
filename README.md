@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My Agenda 
+
+A task management application built to help users organize tasks, manage priorities, and track their progress through a clean, intuitive interface.
+
+## Live Demo
+
+[View Live Demo](https://my-agenda-sand.vercel.app)
+
+## Preview
+
+### Dashboard
+![Dashboard](./public/images/screenshots/dashboard.png)
+
+### Login
+![Login](./public/images/screenshots/login.png)
+
+### Task Modal
+![Task Modal](./public/images/screenshots/task-modal.png)
+
+## Features
+
+- **Authentication:** Email/password and Google OAuth.
+- **Task Management:** Create, edit, delete, and organize tasks by status and priority.
+- **Search & Sorting:** Search by title or tags, filter by status and priority, and sort tasks.
+- **Form Validation:** Zod and React Hook Form.
+- **Security:** Supabase Row Level Security (RLS).
+- **User Experience:** Responsive design, toast notifications, and loading, error, and empty states.
+
+## Tech Stack
+
+- **Frontend & UI:** Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, React Icons
+- **Backend & Authentication:** Supabase, PostgreSQL, Google OAuth
+- **Data Fetching & Forms:** TanStack React Query, React Hook Form, Zod
+- **Deployment:** Vercel
 
 ## Getting Started
 
-First, run the development server:
+### Installation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Clone the repository:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   ```bash
+   git clone https://github.com/Hibaz108/My-Agenda.git
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. Navigate to the project directory:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   cd My-Agenda
+   ```
 
-## Learn More
+3. Install dependencies:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Create a `.env.local` file in the root directory and add your Supabase credentials:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_public_key
+   ```
 
-## Deploy on Vercel
+   Replace the placeholder values with your actual Supabase project credentials.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Start the development server:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
