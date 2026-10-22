@@ -47,3 +47,24 @@ export type FieldErrorProps = {
 export type DashboardClientProps = {
   user: User;
 };
+
+export type TaskControlsProps = {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  selectedStatus: string;
+  onStatusChange: (value: string) => void;
+  selectedPriority: string;
+  onPriorityChange: (value: string) => void;
+  sortBy: string;
+  onSortChange: (value: string) => void;
+};
+
+export type TaskBoardContentProps = {
+  tasks: TaskType[];
+  sortedTasks: TaskType[];
+  isPending: boolean;
+  hasError: boolean;
+  onRetry: () => void;
+  onAddTask: () => void;
+  onClearAll: () => void;
+};

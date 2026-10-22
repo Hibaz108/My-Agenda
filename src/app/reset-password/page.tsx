@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 // components
-import SuccessMessage from "@/components/SuccessMessage";
-import FieldError from "@/components/FieldError";
+import SuccessMessage from "@/components/auth/SuccessMessage";
+import FieldError from "@/components/auth/FieldError";
 // react hook form & zod
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
