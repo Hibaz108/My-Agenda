@@ -4,52 +4,24 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 // icons
 import { PiSignOutBold } from "react-icons/pi";
-import { IoMdSearch } from "react-icons/io";
-import { GoTasklist } from "react-icons/go";
 // shadcn
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 // components
-import TaskColumn from "@/components/TaskColumn";
-import TaskModal from "@/components/TaskModal";
-import TaskSkeleton from "@/components/TaskSkeleton";
+import TaskModal from "@/components/tasks/TaskModal";
+import TaskControls from "@/components/dashboard/TaskControls";
+import TaskBoardContent from "@/components/dashboard/TaskBoardContent";
 // other
 import type { DashboardClientProps } from "@/types/types";
 import { createClient } from "@/lib/supabase/client";
 import { useTasks } from "@/hooks/useTasks";
 
-const statuses = [
-  { label: "All statuses", value: "all" },
-  { label: "To Do", value: "todo" },
-  { label: "In Progress", value: "in-progress" },
-  { label: "Completed", value: "completed" },
-];
-
-const priorities = [
-  { label: "All priorities", value: "all" },
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
-];
-
-const sortOptions = [
-  { label: "Custom order", value: "custom" },
-  { label: "Priority", value: "priority" },
-  { label: "Newest first", value: "newest" },
-  { label: "Title A-Z", value: "title_asc" },
-];
-
 const DashboardClient = ({ user }: DashboardClientProps) => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [sortBy, setSortBy] = useState("custom");
+  const [searchQuery, setSearchQuery] = useState("");
   const supabase = createClient();
   const router = useRouter();
   const now = new Date();
@@ -60,6 +32,42 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
 
   const { data: tasks = [], isPending, error, refetch } = useTasks();
 
+  const query = searchQuery.trim().toLowerCase();
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesStatus =
+      selectedStatus === "all" || task.status === selectedStatus;
+
+    const matchesPriority =
+      selectedPriority === "all" || task.priority === selectedPriority;
+
+    const matchesSearch =
+      task.title.toLowerCase().includes(query) ||
+      task.tags.some((tag) => tag.toLowerCase().includes(query));
+
+    return matchesStatus && matchesPriority && matchesSearch;
+  });
+
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    switch (sortBy) {
+      case "priority": {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      }
+
+      case "newest":
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+
+      case "title_asc":
+        return a.title.localeCompare(b.title);
+
+      default:
+        return 0;
+    }
+  });
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
 
@@ -68,6 +76,13 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
       return;
     }
     router.replace("/login");
+  };
+
+  const handleClearAll = () => {
+    setSearchQuery("");
+    setSelectedStatus("all");
+    setSelectedPriority("all");
+    setSortBy("custom");
   };
 
   return (
@@ -155,148 +170,28 @@ const DashboardClient = ({ user }: DashboardClientProps) => {
           </p>
         </div>
 
-        <div className="flex flex-col justify-center lg:flex-row lg:items-center gap-2 bg-card p-2 mt-3 rounded-lg ">
-          {/* search */}
-          <div className="relative flex-1">
-            <input
-              type="text"
-              className="w-full py-1.5 pl-8 rounded-lg bg-card border border-border outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              placeholder="Search tasks, tags..."
-            />
+        <TaskControls
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedPriority={selectedPriority}
+          onPriorityChange={setSelectedPriority}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+        />
 
-            <span className="absolute left-1.5 top-2 text-muted-foreground">
-              <IoMdSearch className="size-6" />
-            </span>
-          </div>
-          {/* === search === */}
-
-          <div className="flex flex-wrap gap-2">
-            {/* statuses */}
-            <Select items={statuses} defaultValue="all">
-              <SelectTrigger id="statuses">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectGroup>
-                  {statuses.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {/* === statuses === */}
-
-            {/* priorities */}
-            <Select items={priorities} defaultValue="all">
-              <SelectTrigger id="priorities">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectGroup>
-                  {priorities.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {/* === priorities === */}
-
-            {/* order */}
-            <Select items={sortOptions} defaultValue="custom">
-              <SelectTrigger id="order">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectGroup>
-                  {sortOptions.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {/* === order === */}
-          </div>
-        </div>
-
-        {isPending ? (
-          <div
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
-            aria-label="Loading tasks"
-          >
-            {["todo", "in-progress", "completed"].map((status) => (
-              <div
-                key={status}
-                className="mt-4 space-y-3 rounded-2xl bg-primary/30 p-3"
-              >
-                <Skeleton className="h-9 rounded-2xl" />
-
-                <div className="space-y-2">
-                  <TaskSkeleton />
-                  <TaskSkeleton />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <div
-            role="alert"
-            className="flex flex-col items-center gap-3 py-8 text-center"
-          >
-            <p className="text-lg text-muted-foreground font-semibold">
-              We couldn&apos;t load your tasks.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="bg-primary px-4 py-2 text-sm text-primary-foreground font-semibold rounded-xl hover:bg-primary-hover transition-colors"
-            >
-              Try again
-            </button>
-          </div>
-        ) : tasks.length === 0 ? (
-          <div className="flex-1 w-full flex flex-col justify-center items-center gap-2 bg-card p-2 mt-3 text-center rounded-2xl ">
-            <span >
-              <GoTasklist className="size-8 text-primary" strokeWidth={1} />
-            </span>
-
-            <h4 className="text-lg text-primary md:text-xl font-semibold">No tasks yet</h4>
-            <p className="text-muted-foreground text-sm">
-              Create your first task and start shaping your day.
-            </p>
-
-            <button
-              type="button"
-              className="bg-primary py-2 px-4 text-sm text-primary-foreground rounded-xl hover:bg-primary-hover transition-colors"
-              onClick={() => setIsTaskModalOpen(true)}
-            >
-              + Add task
-            </button>
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { label: "To Do", status: "todo" },
-              { label: "In Progress", status: "in-progress" },
-              { label: "Completed", status: "completed" },
-            ].map((column) => (
-              <TaskColumn
-                key={column.status}
-                label={column.label}
-                tasks={tasks.filter((task) => task.status === column.status)}
-              />
-            ))}
-          </div>
-        )}
+        <TaskBoardContent
+          tasks={tasks}
+          sortedTasks={sortedTasks}
+          isPending={isPending}
+          hasError={!!error}
+          onRetry={() => {
+            void refetch();
+          }}
+          onAddTask={() => setIsTaskModalOpen(true)}
+          onClearAll={handleClearAll}
+        />
       </div>
     </>
   );

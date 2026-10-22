@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 // components
-import FormInput from "@/components/FormInput";
-import GoogleBtn from "@/components/GoogleBtn";
-import SuccessMessage from "@/components/SuccessMessage";
-import FieldError from "@/components/FieldError";
+import FormInput from "@/components/auth/FormInput";
+import GoogleBtn from "@/components/auth/GoogleBtn";
+import SuccessMessage from "@/components/auth/SuccessMessage";
+import FieldError from "@/components/auth/FieldError";
 // icons
 import { MdEmail } from "react-icons/md";
 import { IoMdLock } from "react-icons/io";

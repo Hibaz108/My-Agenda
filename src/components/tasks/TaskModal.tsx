@@ -19,7 +19,7 @@ import type { TaskModalProps } from "@/types/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { taskSchema, type TaskFormValues } from "@/schemas/taskSchema";
-import FieldError from "@/components/FieldError";
+import FieldError from "@/components/auth/FieldError";
 import { useAddTask } from "@/hooks/useAddTask";
 import { useUpdateTask } from "@/hooks/useUpdateTask";
 

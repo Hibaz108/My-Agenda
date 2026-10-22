@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 // components
-import FormInput from "@/components/FormInput";
-import GoogleBtn from "@/components/GoogleBtn";
-import FieldError from "@/components/FieldError";
+import FormInput from "@/components/auth/FormInput";
+import GoogleBtn from "@/components/auth/GoogleBtn";
+import FieldError from "@/components/auth/FieldError";
 // icons
 import { MdEmail } from "react-icons/md";
 import { IoMdLock } from "react-icons/io";
